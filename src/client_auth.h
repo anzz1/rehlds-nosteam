@@ -1,7 +1,5 @@
 #pragma once
 
-#include "renosteam_shared.h"
-
 struct client_auth_context_t {
 	int protocol;
 	bool nativeAuthFailed;
@@ -19,8 +17,6 @@ struct client_auth_context_t {
 	}
 };
 
-
-
 extern client_auth_context_t* g_CurrentAuthContext;
+extern void Renosteam_Auth_Init();
 
-extern bool Auth_Init();

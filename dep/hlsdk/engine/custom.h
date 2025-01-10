@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -18,6 +18,7 @@
 #include "const.h"
 
 #define MAX_QPATH 64    // Must match value in quakedefs.h
+#define MAX_RESOURCE_LIST	1280
 
 /////////////////
 // Customization
@@ -32,6 +33,9 @@ typedef enum
 	t_generic,
 	t_eventscript,
 	t_world,		// Fake type for world, is really t_model
+	rt_unk,
+
+	rt_max
 } resourcetype_t;
 
 
@@ -42,7 +46,7 @@ typedef struct
 
 typedef struct resourceinfo_s
 {
-	_resourceinfo_t info[ 8 ];
+	_resourceinfo_t info[ rt_max ];
 } resourceinfo_t;
 
 #define RES_FATALIFMISSING (1<<0)   // Disconnect if we can't get this file.
@@ -59,7 +63,14 @@ typedef struct resourceinfo_s
 
 typedef struct resource_s
 {
+#ifdef HOOK_HLTV
+	// NOTE HLTV: array szFileName declared on 260 cell,
+	// this changes necessary for compatibility hookers.
+	char              szFileName[MAX_PATH];
+#else
 	char              szFileName[MAX_QPATH]; // File name to download/precache.
+#endif // HOOK_HLTV
+
 	resourcetype_t    type;                // t_sound, t_skin, t_model, t_decal.
 	int               nIndex;              // For t_decals
 	int               nDownloadSize;       // Size in Bytes if this must be downloaded.
@@ -71,14 +82,19 @@ typedef struct resource_s
 
 	unsigned char	  rguc_reserved[ 32 ]; // For future expansion
 	struct resource_s *pNext;              // Next in chain.
+
+#if !defined(HLTV)
 	struct resource_s *pPrev;
+#else
+	unsigned char *data;
+#endif // !defined(HLTV)
 } resource_t;
 
 typedef struct customization_s
 {
 	qboolean bInUse;     // Is this customization in use;
 	resource_t resource; // The resource_t for this customization
-	qboolean bTranslated; // Has the raw data been translated into a useable format?  
+	qboolean bTranslated; // Has the raw data been translated into a useable format?
 						   //  (e.g., raw decal .wad make into texture_t *)
 	int        nUserData1; // Customization specific data
 	int        nUserData2; // Customization specific data

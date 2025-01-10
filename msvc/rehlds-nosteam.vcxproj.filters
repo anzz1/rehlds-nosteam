@@ -9,10 +9,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\client_auth.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\dllapi.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\engine_api.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ex_rehlds_api.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\h_export.cpp">
@@ -21,19 +27,7 @@
     <ClCompile Include="..\src\meta_api.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\sdk_util.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\public_amalgamation.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mod_rehlds_api.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\precompiled.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\client_auth.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rhns_player.cpp">
@@ -41,19 +35,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\renosteam_shared.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\mod_rehlds_api.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\osconf.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\precompiled.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\client_auth.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ex_rehlds_api.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\src\rhns_player.h">

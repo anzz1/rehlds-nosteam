@@ -1,6 +1,15 @@
 #pragma once
 
-#include "renosteam_shared.h"
+#include "rehlds_interfaces.h"
+
+#define MAX_PLAYERS 32
+
+enum client_auth_kind {
+	CA_UNKNOWN = 0,
+	CA_STEAM,
+	CA_HLTV,
+	CA_NOSTEAM
+};
 
 class CRHNSPlayer {
 private:

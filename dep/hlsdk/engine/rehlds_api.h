@@ -33,9 +33,11 @@
 #include "FlightRecorder.h"
 #include "interface.h"
 #include "model.h"
+#include "ObjectList.h"
+#include "pr_dlls.h"
 
-#define REHLDS_API_VERSION_MAJOR 1
-#define REHLDS_API_VERSION_MINOR 0
+#define REHLDS_API_VERSION_MAJOR 3
+#define REHLDS_API_VERSION_MINOR 3
 
 //Steam_NotifyClientConnect hook
 typedef IHookChain<qboolean, IGameClient*, const void*, unsigned int> IRehldsHook_Steam_NotifyClientConnect;
@@ -78,8 +80,8 @@ typedef IHookChain<qboolean, IGameClient*> IRehldsHook_Steam_NotifyBotConnect;
 typedef IHookChainRegistry<qboolean, IGameClient*> IRehldsHookRegistry_Steam_NotifyBotConnect;
 
 //SerializeSteamId
-typedef IVoidHookChain<USERID_t*> IRehldsHook_SerializeSteamId;
-typedef IVoidHookChainRegistry<USERID_t*> IRehldsHookRegistry_SerializeSteamId;
+typedef IVoidHookChain<USERID_t*, USERID_t*> IRehldsHook_SerializeSteamId;
+typedef IVoidHookChainRegistry<USERID_t*, USERID_t*> IRehldsHookRegistry_SerializeSteamId;
 
 //SV_CompareUserID hook
 typedef IHookChain<qboolean, USERID_t*, USERID_t*> IRehldsHook_SV_CompareUserID;
@@ -97,6 +99,10 @@ typedef IHookChainRegistry<bool, uint8*, unsigned int, const netadr_t&> IRehldsH
 typedef IHookChain<bool, const char*, cmd_source_t, IGameClient*> IRehldsHook_ValidateCommand;
 typedef IHookChainRegistry<bool, const char*, cmd_source_t, IGameClient*> IRehldsHookRegistry_ValidateCommand;
 
+//ExecuteServerStringCmd
+typedef IVoidHookChain<const char*, cmd_source_t, IGameClient*> IRehldsHook_ExecuteServerStringCmd;
+typedef IVoidHookChainRegistry<const char*, cmd_source_t, IGameClient*> IRehldsHookRegistry_ExecuteServerStringCmd;
+
 //ClientConnected
 typedef IVoidHookChain<IGameClient*> IRehldsHook_ClientConnected;
 typedef IVoidHookChainRegistry<IGameClient*> IRehldsHookRegistry_ClientConnected;
@@ -112,6 +118,82 @@ typedef IVoidHookChainRegistry<model_t*, void*> IRehldsHookRegistry_Mod_LoadBrus
 //Mod_LoadStudioModel
 typedef IVoidHookChain<model_t*, void*> IRehldsHook_Mod_LoadStudioModel;
 typedef IVoidHookChainRegistry<model_t*, void*> IRehldsHookRegistry_Mod_LoadStudioModel;
+
+//SV_EmitEvents hook
+typedef IVoidHookChain<IGameClient *, struct packet_entities_s *, sizebuf_t *> IRehldsHook_SV_EmitEvents;
+typedef IVoidHookChainRegistry<IGameClient *, struct packet_entities_s *, sizebuf_t *> IRehldsHookRegistry_SV_EmitEvents;
+
+//EV_PlayReliableEvent hook
+typedef IVoidHookChain<IGameClient *, int, unsigned short, float, struct event_args_s *> IRehldsHook_EV_PlayReliableEvent;
+typedef IVoidHookChainRegistry<IGameClient *, int, unsigned short, float, struct event_args_s *> IRehldsHookRegistry_EV_PlayReliableEvent;
+
+//SV_StartSound hook
+typedef IVoidHookChain<int , edict_t *, int, const char *, int, float, int, int> IRehldsHook_SV_StartSound;
+typedef IVoidHookChainRegistry<int , edict_t *, int, const char *, int, float, int, int> IRehldsHookRegistry_SV_StartSound;
+
+//PF_Remove_I hook
+typedef IVoidHookChain<edict_t *> IRehldsHook_PF_Remove_I;
+typedef IVoidHookChainRegistry<edict_t *> IRehldsHookRegistry_PF_Remove_I;
+
+//PF_BuildSoundMsg_I hook
+typedef IVoidHookChain<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> IRehldsHook_PF_BuildSoundMsg_I;
+typedef IVoidHookChainRegistry<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> IRehldsHookRegistry_PF_BuildSoundMsg_I;
+
+//SV_WriteFullClientUpdate hook
+typedef IVoidHookChain<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> IRehldsHook_SV_WriteFullClientUpdate;
+typedef IVoidHookChainRegistry<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> IRehldsHookRegistry_SV_WriteFullClientUpdate;
+
+//SV_CheckConsistencyResponse hook
+typedef IHookChain<bool, IGameClient *, resource_t *, uint32> IRehldsHook_SV_CheckConsistencyResponse;
+typedef IHookChainRegistry<bool, IGameClient *, resource_t *, uint32> IRehldsHookRegistry_SV_CheckConsistencyResponse;
+
+//SV_DropClient hook
+typedef IVoidHookChain<IGameClient*, bool, const char*> IRehldsHook_SV_DropClient;
+typedef IVoidHookChainRegistry<IGameClient*, bool, const char*> IRehldsHookRegistry_SV_DropClient;
+
+//SV_ActivateServer hook
+typedef IVoidHookChain<int> IRehldsHook_SV_ActivateServer;
+typedef IVoidHookChainRegistry<int> IRehldsHookRegistry_SV_ActivateServer;
+
+//SV_WriteVoiceCodec hook
+typedef IVoidHookChain<sizebuf_t *> IRehldsHook_SV_WriteVoiceCodec;
+typedef IVoidHookChainRegistry<sizebuf_t *> IRehldsHookRegistry_SV_WriteVoiceCodec;
+
+//Steam_GSGetSteamID hook
+typedef IHookChain<uint64> IRehldsHook_Steam_GSGetSteamID;
+typedef IHookChainRegistry<uint64> IRehldsHookRegistry_Steam_GSGetSteamID;
+
+//SV_TransferConsistencyInfo hook
+typedef IHookChain<int> IRehldsHook_SV_TransferConsistencyInfo;
+typedef IHookChainRegistry<int> IRehldsHookRegistry_SV_TransferConsistencyInfo;
+
+//Steam_GSBUpdateUserData hook
+typedef IHookChain<bool, uint64, const char *, uint32> IRehldsHook_Steam_GSBUpdateUserData;
+typedef IHookChainRegistry<bool, uint64, const char *, uint32> IRehldsHookRegistry_Steam_GSBUpdateUserData;
+
+//Cvar_DirectSet hook
+typedef IVoidHookChain<struct cvar_s *, const char *> IRehldsHook_Cvar_DirectSet;
+typedef IVoidHookChainRegistry<struct cvar_s *, const char *> IRehldsHookRegistry_Cvar_DirectSet;
+
+//SV_EstablishTimeBase hook
+typedef IVoidHookChain<IGameClient *, struct usercmd_s *, int, int, int> IRehldsHook_SV_EstablishTimeBase;
+typedef IVoidHookChainRegistry<IGameClient *, struct usercmd_s *, int, int, int> IRehldsHookRegistry_SV_EstablishTimeBase;
+
+//SV_Spawn_f hook
+typedef IVoidHookChain<> IRehldsHook_SV_Spawn_f;
+typedef IVoidHookChainRegistry<> IRehldsHookRegistry_SV_Spawn_f;
+
+//SV_CreatePacketEntities hook
+typedef IHookChain<int, enum sv_delta_s, IGameClient *, struct packet_entities_s *, struct sizebuf_s *> IRehldsHook_SV_CreatePacketEntities;
+typedef IHookChainRegistry<int, enum sv_delta_s, IGameClient *, struct packet_entities_s *, struct sizebuf_s *> IRehldsHookRegistry_SV_CreatePacketEntities;
+
+//SV_EmitSound2 hook
+typedef IHookChain<bool, edict_t *, IGameClient *, int, const char*, float, float, int, int, int, const float*> IRehldsHook_SV_EmitSound2;
+typedef IHookChainRegistry<bool, edict_t *, IGameClient *, int, const char*, float, float, int, int, int, const float*> IRehldsHookRegistry_SV_EmitSound2;
+
+//CreateFakeClient hook
+typedef IHookChain<edict_t *, const char *> IRehldsHook_CreateFakeClient;
+typedef IHookChainRegistry<edict_t *, const char *> IRehldsHookRegistry_CreateFakeClient;
 
 class IRehldsHookchains {
 public:
@@ -136,6 +218,26 @@ public:
 	virtual IRehldsHookRegistry_HandleNetCommand* HandleNetCommand() = 0;
 	virtual IRehldsHookRegistry_Mod_LoadBrushModel* Mod_LoadBrushModel() = 0;
 	virtual IRehldsHookRegistry_Mod_LoadStudioModel* Mod_LoadStudioModel() = 0;
+	virtual IRehldsHookRegistry_ExecuteServerStringCmd* ExecuteServerStringCmd() = 0;
+	virtual IRehldsHookRegistry_SV_EmitEvents* SV_EmitEvents() = 0;
+	virtual IRehldsHookRegistry_EV_PlayReliableEvent* EV_PlayReliableEvent() = 0;
+	virtual IRehldsHookRegistry_SV_StartSound* SV_StartSound() = 0;
+	virtual IRehldsHookRegistry_PF_Remove_I* PF_Remove_I() = 0;
+	virtual IRehldsHookRegistry_PF_BuildSoundMsg_I* PF_BuildSoundMsg_I() = 0;
+	virtual IRehldsHookRegistry_SV_WriteFullClientUpdate* SV_WriteFullClientUpdate() = 0;
+	virtual IRehldsHookRegistry_SV_CheckConsistencyResponse* SV_CheckConsistencyResponse() = 0;
+	virtual IRehldsHookRegistry_SV_DropClient* SV_DropClient() = 0;
+	virtual IRehldsHookRegistry_SV_ActivateServer* SV_ActivateServer() = 0;
+	virtual IRehldsHookRegistry_SV_WriteVoiceCodec* SV_WriteVoiceCodec() = 0;
+	virtual IRehldsHookRegistry_Steam_GSGetSteamID* Steam_GSGetSteamID() = 0;
+	virtual IRehldsHookRegistry_SV_TransferConsistencyInfo* SV_TransferConsistencyInfo() = 0;
+	virtual IRehldsHookRegistry_Steam_GSBUpdateUserData* Steam_GSBUpdateUserData() = 0;
+	virtual IRehldsHookRegistry_Cvar_DirectSet* Cvar_DirectSet() = 0;
+	virtual IRehldsHookRegistry_SV_EstablishTimeBase* SV_EstablishTimeBase() = 0;
+	virtual IRehldsHookRegistry_SV_Spawn_f* SV_Spawn_f() = 0;
+	virtual IRehldsHookRegistry_SV_CreatePacketEntities* SV_CreatePacketEntities() = 0;
+	virtual IRehldsHookRegistry_SV_EmitSound2* SV_EmitSound2() = 0;
+	virtual IRehldsHookRegistry_CreateFakeClient* CreateFakeClient() = 0;
 };
 
 struct RehldsFuncs_t {
@@ -159,6 +261,41 @@ struct RehldsFuncs_t {
 	int(*GetBuildNumber)();
 	double(*GetRealTime)();
 	int*(*GetMsgBadRead)();
+	cmd_source_t*(*GetCmdSource)();
+	void(*Log)(const char* prefix, const char* msg);
+	DLL_FUNCTIONS *(*GetEntityInterface)();
+	void(*EV_PlayReliableEvent)(IGameClient *cl, int entindex, unsigned short eventindex, float delay, struct event_args_s *pargs);
+	int(*SV_LookupSoundIndex)(const char *sample);
+	void(*MSG_StartBitWriting)(sizebuf_t *buf);
+	void(*MSG_WriteBits)(uint32 data, int numbits);
+	void(*MSG_WriteBitVec3Coord)(const float *fa);
+	void(*MSG_EndBitWriting)(sizebuf_t *buf);
+	void*(*SZ_GetSpace)(sizebuf_t *buf, int length);
+	cvar_t*(*GetCvarVars)();
+	int (*SV_GetChallenge)(const netadr_t& adr);
+	void (*SV_AddResource)(resourcetype_t type, const char *name, int size, unsigned char flags, int index);
+	int(*MSG_ReadShort)();
+	int(*MSG_ReadBuf)(int iSize, void *pbuf);
+	void(*MSG_WriteBuf)(sizebuf_t *sb, int iSize, void *buf);
+	void(*MSG_WriteByte)(sizebuf_t *sb, int c);
+	void(*MSG_WriteShort)(sizebuf_t *sb, int c);
+	void(*MSG_WriteString)(sizebuf_t *sb, const char *s);
+	void*(*GetPluginApi)(const char *name);
+	void(*RegisterPluginApi)(const char *name, void *impl);
+	qboolean(*SV_FileInConsistencyList)(const char *filename, struct consistency_s **ppconsist);
+	qboolean(*Steam_NotifyClientConnect)(IGameClient *cl, const void *pvSteam2Key, unsigned int ucbSteam2Key);
+	void(*Steam_NotifyClientDisconnect)(IGameClient* cl);
+	void(*SV_StartSound)(int recipients, edict_t *entity, int channel, const char *sample, int volume, float attenuation, int flags, int pitch);
+	bool(*SV_EmitSound2)(edict_t *entity, IGameClient *receiver, int channel, const char *sample, float volume, float attenuation, int flags, int pitch, int emitFlags, const float *pOrigin);
+	void(*SV_UpdateUserInfo)(IGameClient *pGameClient);
+	bool(*StripUnprintableAndSpace)(char *pch);
+	void(*Cmd_RemoveCmd)(const char *cmd_name);
+	void(*GetCommandMatches)(const char *string, ObjectList *pMatchList);
+	bool(*AddExtDll)(void *hModule);
+	void(*AddCvarListener)(const char *var_name, cvar_callback_t func);
+	void(*RemoveExtDll)(void *hModule);
+	void(*RemoveCvarListener)(const char *var_name, cvar_callback_t func);
+	ENTITYINIT(*GetEntityInit)(char *pszClassName);
 };
 
 class IRehldsApi {

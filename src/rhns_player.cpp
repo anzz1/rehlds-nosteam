@@ -1,4 +1,8 @@
-#include "precompiled.h"
+
+#include <extdll.h>
+#include <string>
+#include "rhns_player.h"
+#include "ex_rehlds_api.h"
 
 CRHNSPlayer g_Players[MAX_PLAYERS];
 
@@ -28,15 +32,15 @@ const char* CRHNSPlayer::GetSteamId() {
 		break;
 
 	case CA_HLTV:
-		sprintf(idstring, "HLTV");
+		strcpy(idstring, "HLTV");
 		break;
 
 	case CA_NOSTEAM:
-		sprintf(idstring, "STEAM_ID_LAN");
+		strcpy(idstring, "STEAM_ID_LAN");
 		break;
 
 	default:
-		sprintf(idstring, "UNKNOWN");
+		strcpy(idstring, "UNKNOWN");
 		break;
 	}
 

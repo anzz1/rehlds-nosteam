@@ -67,6 +67,11 @@ public:
 	virtual bool IsConnected() = 0;
 	virtual void SetConnected(bool connected) = 0;
 
+	virtual uint32 GetVoiceStream(int stream_id) = 0;
+	virtual void SetLastVoiceTime(double time) = 0;
+	virtual double GetLastVoiceTime() = 0;
+	virtual bool GetLoopback() = 0;
+	virtual struct usercmd_s *GetLastCmd() = 0;
 
 	// this must be the last virtual function in class
 #ifdef REHLDS_SELF
@@ -77,6 +82,7 @@ public:
 class INetChan {
 public:
 	virtual const netadr_t* GetRemoteAdr() = 0;
+	virtual sizebuf_t* GetMessageBuf() = 0;
 
 
 	// this must be the last virtual function in class
@@ -85,6 +91,10 @@ public:
 #endif
 };
 
+#ifndef REHLDS_SELF
+struct client_t;
+#endif
+
 class IRehldsServerStatic {
 public:
 	virtual ~IRehldsServerStatic() { }
@@ -92,6 +102,8 @@ public:
 	virtual int GetMaxClients() = 0;
 	virtual bool IsLogActive() = 0;
 	virtual IGameClient* GetClient(int id) = 0;
+	virtual client_t* GetClient_t(int id) = 0;
+	virtual int GetIndexOfClient_t(client_t* client) = 0;
 };
 
 class IRehldsServerData {
@@ -102,4 +114,19 @@ public:
 	virtual const char* GetName() = 0;
 	virtual uint32 GetWorldmapCrc() = 0;
 	virtual uint8* GetClientDllMd5() = 0;
+	virtual sizebuf_t* GetDatagram() = 0;
+	virtual sizebuf_t* GetReliableDatagram() = 0;
+
+	virtual void SetModelName(const char* modelname) = 0;
+	virtual void SetConsistencyNum(int num) = 0;
+	virtual int GetConsistencyNum() = 0;
+	virtual int GetResourcesNum() = 0;
+	virtual int GetDecalNameNum() = 0;
+
+	virtual double GetTime() = 0;
+	virtual void SetResourcesNum(int num) = 0;
+	virtual struct resource_s *GetResource(int index) = 0;
+	virtual void SetName(const char* name) = 0;
+	virtual class ISteamGameServer *GetSteamGameServer() = 0;
+	virtual struct netadr_s *GetNetFrom() = 0;
 };

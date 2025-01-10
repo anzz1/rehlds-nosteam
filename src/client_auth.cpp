@@ -1,11 +1,16 @@
-#include "precompiled.h"
+#include <extdll.h>
+#include <meta_api.h>
+
+#include "ex_rehlds_api.h"
+#include "client_auth.h"
+#include "rhns_player.h"
 
 client_auth_context_t* g_CurrentAuthContext = NULL;
 
 bool Renosteam_FinishClientAuth(IGameClient* cl)
 {
 	if (g_CurrentAuthContext == NULL) {
-		LCPrintf(true, "WARNING: %s is called without active auth context\n", __FUNCTION__);
+		SERVER_PRINT("WARNING: Renosteam_FinishClientAuth is called without active auth context\n");
 		return false;
 	}
 
@@ -29,11 +34,11 @@ bool Renosteam_FinishClientAuth(IGameClient* cl)
 
 void SV_ConnectClient_hook(IRehldsHook_SV_ConnectClient* chain) {
 	if (g_CurrentAuthContext != NULL) {
-		LCPrintf(true, "WARNING: %s: recursive call\n", __FUNCTION__);
+		SERVER_PRINT("WARNING: SV_ConnectClient_hook: recursive call\n");
 		chain->callNext();
 		return;
 	}
-	
+
 	client_auth_context_t authContext = client_auth_context_t();
 	g_CurrentAuthContext = &authContext;
 	chain->callNext();
@@ -42,10 +47,10 @@ void SV_ConnectClient_hook(IRehldsHook_SV_ConnectClient* chain) {
 
 int SV_CheckKeyInfo_hook(IRehldsHook_SV_CheckKeyInfo* chain, netadr_t *adr, char *protinfo, short unsigned int *port, int *pAuthProtocol, char *pszRaw, char *cdkey) {
 	if (g_CurrentAuthContext == NULL) {
-		LCPrintf(true, "WARNING: %s is called outside auth context\n",__FUNCTION__);
+		SERVER_PRINT("WARNING: SV_CheckKeyInfo_hook is called outside auth context\n");
 		return chain->callNext(adr, protinfo, port, pAuthProtocol, pszRaw, cdkey);
 	}
-	
+
 	int authProto = atoi(g_engfuncs.pfnInfoKeyValue(protinfo, "prot"));
 	if (authProto <= 0 || authProto > 4) {
 		g_RehldsFuncs->RejectConnection(adr, "Invalid connection.\n");
@@ -67,7 +72,7 @@ int SV_CheckKeyInfo_hook(IRehldsHook_SV_CheckKeyInfo* chain, netadr_t *adr, char
 
 int SV_FinishCertificateCheck_hook(IRehldsHook_SV_FinishCertificateCheck* chain, netadr_t *adr, int nAuthProtocol, char *szRawCertificate, char *userinfo) {
 	if (g_CurrentAuthContext == NULL) {
-		LCPrintf(true, "WARNING: %s is called outside auth context\n", __FUNCTION__);
+		SERVER_PRINT("WARNING: SV_FinishCertificateCheck_hook is called outside auth context\n");
 		return chain->callNext(adr, nAuthProtocol, szRawCertificate, userinfo);
 	}
 
@@ -84,13 +89,13 @@ int SV_FinishCertificateCheck_hook(IRehldsHook_SV_FinishCertificateCheck* chain,
 			pNetMessage->cursize += 1;
 		}
 	}
-	
+
 	return 1;
 }
 
 qboolean Steam_NotifyClientConnect_hook(IRehldsHook_Steam_NotifyClientConnect* chain, IGameClient *cl, const void *pvSteam2Key, unsigned int ucbSteam2Key) {
 	if (g_CurrentAuthContext == NULL) {
-		LCPrintf(true, "WARNING: %s is called outside auth context\n", __FUNCTION__);
+		SERVER_PRINT("WARNING: Steam_NotifyClientConnect_hook is called outside auth context\n");
 		return chain->callNext(cl, pvSteam2Key, ucbSteam2Key);
 	}
 
@@ -115,45 +120,46 @@ char *SV_GetIDString_hook(IRehldsHook_SV_GetIDString* chain, USERID_t *id) {
 	else {
 		uint32 accId = id->m_SteamID & 0xFFFFFFFF;
 		switch (id->idtype) {
-		case 1:
-			if (accId == 0) {
-				strcpy(idstring, "STEAM_ID_LAN");
-			}
-			else if (accId == 1) {
-				strcpy(idstring, "STEAM_ID_PENDING");
-			}
-			else {
-				sprintf(idstring, "STEAM_%u:%u:%u", 0, accId & 1, accId >> 1);
-			}
-			break;
+			case 1:
+				if (accId == 0) {
+					strcpy(idstring, "STEAM_ID_LAN");
+				}
+				else if (accId == 1) {
+					strcpy(idstring, "STEAM_ID_PENDING");
+				}
+				else {
+					sprintf(idstring, "STEAM_%u:%u:%u", 0, accId & 1, accId >> 1);
+				}
+				break;
 
-		case 2:
-			if (accId == 0) {
-				strcpy(idstring, "VALVE_ID_LAN");
-			}
-			else if (accId == 1) {
-				strcpy(idstring, "VALVE_ID_PENDING");
-			}
-			else {
-				sprintf(idstring, "VALVE_%u:%u:%u", 0, accId & 1, accId >> 1);
-			}
-			break;
+			case 2:
+				if (accId == 0) {
+					strcpy(idstring, "VALVE_ID_LAN");
+				}
+				else if (accId == 1) {
+					strcpy(idstring, "VALVE_ID_PENDING");
+				}
+				else {
+					sprintf(idstring, "VALVE_%u:%u:%u", 0, accId & 1, accId >> 1);
+				}
+				break;
 
 
-		case 3:
-			strcpy(idstring, "HLTV");
-			break;
+			case 3:
+				strcpy(idstring, "HLTV");
+				break;
 
-		default:
-			strcpy(idstring, "UNKNOWN");
-			break;
+			default:
+				strcpy(idstring, "UNKNOWN");
+				break;
 		}
 	}
 
 	return idstring;
 }
 
-bool Auth_Init() {
+void Renosteam_Auth_Init() {
+	Renosteam_Players_Init();
 
 	//
 	// Install hooks
@@ -162,10 +168,6 @@ bool Auth_Init() {
 	g_RehldsHookchains->SV_CheckKeyInfo()->registerHook(&SV_CheckKeyInfo_hook);
 	g_RehldsHookchains->SV_FinishCertificateCheck()->registerHook(&SV_FinishCertificateCheck_hook);
 	g_RehldsHookchains->Steam_NotifyClientConnect()->registerHook(&Steam_NotifyClientConnect_hook);
-
 	g_RehldsHookchains->SV_GetIDString()->registerHook(&SV_GetIDString_hook);
-
 	g_RehldsHookchains->Steam_NotifyClientDisconnect()->registerHook(&Steam_NotifyClientDisconnect_hook);
-
-	return true;
 }
