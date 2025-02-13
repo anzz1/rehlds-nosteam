@@ -7,6 +7,20 @@
 
 client_auth_context_t* g_CurrentAuthContext = NULL;
 
+bool IsValidSteamTicket(const void *pvSteam2Key, uint32 ucbSteam2Key) {
+	if (ucbSteam2Key < 16) {
+		return false;
+	}
+
+	const uint32 TicketOff = *(uint32 *)pvSteam2Key;
+	if ((TicketOff + 16) > ucbSteam2Key) {
+		return false;
+	}
+
+	const int* cc = (int *)((uint8 *)pvSteam2Key + 4 + TicketOff);
+	return cc[0] >= 0 && cc[1] >= 0;
+}
+
 bool Renosteam_FinishClientAuth(IGameClient* cl)
 {
 	if (g_CurrentAuthContext == NULL) {
@@ -80,14 +94,14 @@ int SV_FinishCertificateCheck_hook(IRehldsHook_SV_FinishCertificateCheck* chain,
 	if (hltv && *hltv) {
 		*g_CurrentAuthContext->pAuthProto = 3;
 		g_CurrentAuthContext->hltv = true;
+	}
 
-		sizebuf_t* pNetMessage = g_RehldsFuncs->GetNetMessage();
-		int* pMsgReadCount = g_RehldsFuncs->GetMsgReadCount();
+	sizebuf_t* pNetMessage = g_RehldsFuncs->GetNetMessage();
+	int* pMsgReadCount = g_RehldsFuncs->GetMsgReadCount();
 
-		//avoid "invalid steam certificate length" error
-		if (*pMsgReadCount == pNetMessage->cursize) {
-			pNetMessage->cursize += 1;
-		}
+	//avoid "invalid steam certificate length" error
+	if (*pMsgReadCount == pNetMessage->cursize) {
+		pNetMessage->cursize += 1;
 	}
 
 	return 1;
@@ -99,7 +113,10 @@ qboolean Steam_NotifyClientConnect_hook(IRehldsHook_Steam_NotifyClientConnect* c
 		return chain->callNext(cl, pvSteam2Key, ucbSteam2Key);
 	}
 
-	qboolean authRes = chain->callNext(cl, pvSteam2Key, ucbSteam2Key);
+	bool authRes = IsValidSteamTicket(pvSteam2Key, ucbSteam2Key);
+	if (authRes) {
+		authRes = chain->callNext(cl, pvSteam2Key, ucbSteam2Key);
+	}
 	g_CurrentAuthContext->nativeAuthFailed = !authRes;
 
 	return Renosteam_FinishClientAuth(cl) ? 1 : 0;

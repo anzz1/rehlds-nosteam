@@ -85,6 +85,11 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;REHLDSNOSTEAM_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\src\;$(ProjectDir)..\dep\hlsdk\common\;$(ProjectDir)..\dep\hlsdk\dlls\;$(ProjectDir)..\dep\hlsdk\engine\;$(ProjectDir)..\dep\hlsdk\public\rehlds\;$(ProjectDir)..\dep\hlsdk\public\;$(ProjectDir)..\dep\metamod\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <UseFullPaths>false</UseFullPaths>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <ProgramDataBaseFileName />
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
